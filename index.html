@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rotation Interaction Prototype</title>
+  <link rel="stylesheet" href="src/styles.css" />
+</head>
+<body>
+  <div id="scene">
+    <!-- Top bar -->
+    <div id="scene-top">
+      <span id="scene-title">Scene name</span>
+      <button id="scene-close" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 2L14 14M14 2L2 14" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Canvas -->
+    <div id="canvas-area">
+      <div id="grid-bg"></div>
+
+      <div id="layer-wrapper">
+        <div id="layer-label">Layer / Product</div>
+        <div id="layer-img">
+          <span class="placeholder-text">IMAGE LAYER</span>
+        </div>
+
+        <svg id="bbox-svg" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+          <rect x="0" y="0" width="220" height="220"
+            fill="none" stroke="#4a90e2" stroke-width="1.2"/>
+          <rect x="-4"  y="-4"   width="8" height="8" fill="#1a1a2e" stroke="#4a90e2" stroke-width="1.2" rx="1"/>
+          <rect x="216" y="-4"   width="8" height="8" fill="#1a1a2e" stroke="#4a90e2" stroke-width="1.2" rx="1"/>
+          <rect x="216" y="216"  width="8" height="8" fill="#1a1a2e" stroke="#4a90e2" stroke-width="1.2" rx="1"/>
+          <rect x="-4"  y="216"  width="8" height="8" fill="#1a1a2e" stroke="#4a90e2" stroke-width="1.2" rx="1"/>
+          <rect x="106" y="-4"   width="8" height="8" fill="#1a1a2e" stroke="#4a90e2" stroke-width="1.2" rx="1"/>
+          <rect x="106" y="216"  width="8" height="8" fill="#1a1a2e" stroke="#4a90e2" stroke-width="1.2" rx="1"/>
+          <rect x="-4"  y="106"  width="8" height="8" fill="#1a1a2e" stroke="#4a90e2" stroke-width="1.2" rx="1"/>
+          <rect x="216" y="106"  width="8" height="8" fill="#1a1a2e" stroke="#4a90e2" stroke-width="1.2" rx="1"/>
+          <line x1="110" y1="-4" x2="110" y2="-40" stroke="#4a90e2" stroke-width="1.2"/>
+          <rect x="106" y="-44" width="8" height="8" fill="#1a1a2e" stroke="#4a90e2" stroke-width="1.2" rx="1"/>
+        </svg>
+
+        <div class="rot-zone" id="rz-top-arm" data-zone="top-arm"></div>
+        <div class="rot-zone" id="rz-nw"      data-zone="nw"></div>
+        <div class="rot-zone" id="rz-ne"      data-zone="ne"></div>
+        <div class="rot-zone" id="rz-se"      data-zone="se"></div>
+        <div class="rot-zone" id="rz-sw"      data-zone="sw"></div>
+
+        <div class="scale-zone" id="sz-n"  data-dir="n"  style="cursor:n-resize;"></div>
+        <div class="scale-zone" id="sz-s"  data-dir="s"  style="cursor:s-resize;"></div>
+        <div class="scale-zone" id="sz-w"  data-dir="w"  style="cursor:w-resize;"></div>
+        <div class="scale-zone" id="sz-e"  data-dir="e"  style="cursor:e-resize;"></div>
+        <div class="scale-zone" id="sz-nw" data-dir="nw" style="cursor:nw-resize;"></div>
+        <div class="scale-zone" id="sz-ne" data-dir="ne" style="cursor:ne-resize;"></div>
+        <div class="scale-zone" id="sz-se" data-dir="se" style="cursor:se-resize;"></div>
+        <div class="scale-zone" id="sz-sw" data-dir="sw" style="cursor:sw-resize;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom rotation cursor — fixed, follows mouse via JS -->
+  <div id="custom-cursor" aria-hidden="true">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" id="cursor-svg">
+      <path d="M2.07907 9.64082C2.23021 9.22852 2.77749 9.11624 3.07661 9.44204L3.13728 9.51907L4.18744 11.0972C4.56219 10.871 5.0134 10.6187 5.53191 10.3682C7.13348 9.59463 9.40979 8.80981 12.0466 8.82717C14.698 8.84473 17.0549 9.74034 18.7227 10.604C19.3555 10.9318 19.8971 11.2598 20.3274 11.5412L21.5039 9.94262L21.5047 9.94209C21.8222 9.51239 22.4972 9.6829 22.5773 10.2073L23.1888 14.2145C23.2384 14.5396 23.0162 14.845 22.6899 14.8961L22.6878 14.8963L18.6798 15.5084C18.1532 15.5885 17.792 14.9914 18.1075 14.5619L19.1497 13.1417C18.7834 12.9059 18.3323 12.6358 17.8109 12.3658C16.3009 11.5837 14.2598 10.825 12.0331 10.8103C9.79173 10.7956 7.81956 11.4654 6.39351 12.1543C5.97172 12.358 5.6014 12.5631 5.2891 12.749L6.31663 14.2906C6.60938 14.7303 6.22854 15.3142 5.70202 15.2096L5.70067 15.2093L1.72607 14.4127L1.72525 14.4132C1.39984 14.3475 1.19278 14.0306 1.2571 13.7089L2.05235 9.73398L2.07907 9.64082Z" fill="black" stroke="white"/>
+    </svg>
+  </div>
+
+  <!-- Angle degree pill — fixed, tracks cursor position -->
+  <div id="angle-pill" aria-live="polite">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M6.43115 2.04007C6.61646 1.9769 6.8198 1.98915 6.99658 2.07328C7.17326 2.15756 7.30977 2.30756 7.37744 2.49125C7.44511 2.67503 7.43879 2.87787 7.35889 3.05668L4.99658 8.00394C7.15106 8.33877 8.80029 10.2019 8.80029 12.4502C8.80029 12.4639 8.79989 12.4776 8.79932 12.4912H13.2485C13.4475 12.4912 13.639 12.5703 13.7798 12.711C13.9205 12.8517 13.9995 13.0432 13.9995 13.2422C13.9994 13.4411 13.9203 13.6319 13.7798 13.7725C13.6391 13.9131 13.4475 13.9922 13.2485 13.9922H4.57764C4.1418 13.9905 3.71266 13.8795 3.33154 13.668C2.95039 13.4565 2.62903 13.1513 2.39697 12.7823C2.1649 12.4131 2.02986 11.991 2.00439 11.5557C1.97899 11.1205 2.06406 10.6856 2.25146 10.292L6.00439 2.41117C6.09286 2.23669 6.24606 2.10335 6.43115 2.04007ZM3.59619 10.9375C3.52796 11.0843 3.49261 11.2445 3.4917 11.4063C3.49223 11.6939 3.60656 11.9706 3.81006 12.1739C4.01358 12.377 4.29008 12.4911 4.57764 12.4912H7.29932C7.29989 12.4776 7.30029 12.4639 7.30029 12.4502C7.30029 10.7954 5.96017 9.45356 4.30615 9.45023L3.59619 10.9375Z" fill="white"/>
+    </svg>
+    <span id="pill-text">0°</span>
+  </div>
+
+  <script type="module" src="src/rotation.js"></script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+/* ─────────────────────────────────────────────
+   Reset & Base
+───────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bbox-color:        #4a90e2;
+  --handle-bg:         #1a1a2e;
+  --pill-bg:           #131316;
+  --pill-border:       #26262C;
+  --snap-color:        #a78bfa;
+
+  /* Rotation zone sizing */
+  --rot-corner-size:   28px;
+  --rot-corner-offset: -20px;
+
+  /* Scale zone handle sizing */
+  --handle-hit:        16px;
+  --handle-offset:     -6px;
+}
+
+body {
+  background: #0e0e12;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Saans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+
+/* ─────────────────────────────────────────────
+   Scene Container
+───────────────────────────────────────────── */
+#scene {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 24px;
+  gap: 12px;
+  background: #131316;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 24px;
+  flex-shrink: 0;
+}
+
+
+/* ─────────────────────────────────────────────
+   Scene Top Bar
+───────────────────────────────────────────── */
+#scene-top {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+#scene-title {
+  font-family: 'Saans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  line-height: 140%;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+}
+
+#scene-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: #26262C;
+  border: 1px solid #40404A;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+#scene-close:hover {
+  background: #32323a;
+}
+
+
+/* ─────────────────────────────────────────────
+   Canvas
+───────────────────────────────────────────── */
+#canvas-area {
+  position: relative;
+  width: 600px;
+  height: 600px;
+  background: #040406;
+  border: 1px solid #2F2F37;
+  overflow: hidden;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+#grid-bg {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+
+/* ─────────────────────────────────────────────
+   Layer Wrapper
+───────────────────────────────────────────── */
+#layer-wrapper {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+#layer-label {
+  position: absolute;
+  top: -22px;
+  left: 0;
+  font-size: 10.5px;
+  color: rgba(100, 160, 255, 0.7);
+  letter-spacing: 0.03em;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+#layer-img {
+  position: absolute;
+  inset: 0;
+  background: #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: grab;
+}
+
+#layer-img:active {
+  cursor: grabbing;
+}
+
+#layer-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  display: block;
+}
+
+.placeholder-text {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.25);
+  letter-spacing: 0.1em;
+  font-weight: 500;
+  pointer-events: none;
+}
+
+#bbox-svg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+
+/* ─────────────────────────────────────────────
+   Rotation Zones
+───────────────────────────────────────────── */
+.rot-zone {
+  position: absolute;
+  pointer-events: all;
+  cursor: none;
+  z-index: 20;
+  /* Uncomment to debug zone boundaries: */
+  /* background: rgba(255, 0, 0, 0.15); */
+}
+
+/* Corner pads */
+#rz-nw { top: var(--rot-corner-offset);    left: var(--rot-corner-offset);    width: var(--rot-corner-size); height: var(--rot-corner-size); }
+#rz-ne { top: var(--rot-corner-offset);    right: var(--rot-corner-offset);   width: var(--rot-corner-size); height: var(--rot-corner-size); }
+#rz-se { bottom: var(--rot-corner-offset); right: var(--rot-corner-offset);   width: var(--rot-corner-size); height: var(--rot-corner-size); }
+#rz-sw { bottom: var(--rot-corner-offset); left: var(--rot-corner-offset);    width: var(--rot-corner-size); height: var(--rot-corner-size); }
+
+/* Rotation arm tip */
+#rz-top-arm { top: -50px; left: calc(50% - 10px); width: 20px; height: 20px; }
+
+
+/* ─────────────────────────────────────────────
+   Scale Zones
+───────────────────────────────────────────── */
+.scale-zone {
+  position: absolute;
+  pointer-events: all;
+  z-index: 25;
+  width: var(--handle-hit);
+  height: var(--handle-hit);
+}
+
+#sz-n  { top: var(--handle-offset);    left: 50%; transform: translateX(-50%); }
+#sz-s  { bottom: var(--handle-offset); left: 50%; transform: translateX(-50%); }
+#sz-w  { left: var(--handle-offset);   top: 50%;  transform: translateY(-50%); }
+#sz-e  { right: var(--handle-offset);  top: 50%;  transform: translateY(-50%); }
+
+#sz-nw { top: var(--handle-offset);    left: var(--handle-offset);  }
+#sz-ne { top: var(--handle-offset);    right: var(--handle-offset); }
+#sz-se { bottom: var(--handle-offset); right: var(--handle-offset); }
+#sz-sw { bottom: var(--handle-offset); left: var(--handle-offset);  }
+
+
+/* ─────────────────────────────────────────────
+   Custom Cursor
+───────────────────────────────────────────── */
+#custom-cursor {
+  position: fixed;
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+  z-index: 9999;
+  display: none;
+  transform: translate(-50%, -50%);
+}
+
+
+/* ─────────────────────────────────────────────
+   Angle Pill
+───────────────────────────────────────────── */
+#angle-pill {
+  position: fixed;
+  background: var(--pill-bg);
+  border: 1px solid var(--pill-border);
+  border-radius: 6px;
+  padding: 6px;
+  height: 28px;
+  min-width: 44px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+  color: #fff;
+  pointer-events: none;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Saans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
+
+/* ─────────────────────────────────────────────
+   Snap animation (used by JS even without status bar)
+───────────────────────────────────────────── */
+@keyframes snapPop {
+  0%   { transform: scale(2.5); opacity: 0.8; }
+  100% { transform: scale(1);   opacity: 1; }
+}
