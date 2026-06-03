@@ -8,13 +8,16 @@
 }
 
 :root {
-  --bbox-color:        #4a90e2;
-  --handle-bg:         #1a1a2e;
+  --bbox-color:        #ffffff;
+  --handle-bg:         #ffffff;
   --pill-bg:           #131316;
   --pill-border:       #26262C;
   --snap-color:        #a78bfa;
 
   /* Rotation zone sizing */
+  --rot-zone-reach:    12px;
+  --rot-zone-depth:    16px;
+  --rot-zone-inset:    8px;
   --rot-corner-size:   28px;
   --rot-corner-offset: -20px;
 
@@ -70,6 +73,44 @@ body {
   color: #ffffff;
 }
 
+.scene-top-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+#group-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 12px;
+  background: #26262C;
+  border: 1px solid #40404A;
+  border-radius: 8px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.45);
+  font-family: 'Saans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+#group-toggle.active {
+  background: #26262C;
+  border-color: #4570FF;
+  color: #4570FF;
+}
+
+#group-toggle:hover:not(.active) {
+  background: #32323a;
+  color: rgba(255, 255, 255, 0.7);
+}
+
 #scene-close {
   display: flex;
   align-items: center;
@@ -123,24 +164,55 @@ body {
   will-change: transform;
 }
 
-#layer-label {
-  position: absolute;
-  top: -22px;
-  left: 0;
-  font-size: 10.5px;
-  color: rgba(100, 160, 255, 0.7);
-  letter-spacing: 0.03em;
-  pointer-events: none;
+/* Layer pill — fixed overlay, JS positions it above the layer's AABB */
+#layer-pill {
+  position: fixed;
+  width: 119px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  background: rgba(38, 38, 44, 0.88);
+  border: 1px solid #2F2F37;
+  border-radius: 16px;
+  box-shadow: 0px 4px 32px 4px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(16px);
+  z-index: 9998;
+  pointer-events: all;
   white-space: nowrap;
+}
+
+#layer-pill-btn {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 0 12px;
+  gap: 8px;
+  width: 103px;
+  height: 32px;
+  background: #26262C;
+  border: 1px solid #40404A;
+  box-shadow: 0px 1px 2px rgba(0,0,0,0.03), 0px 1px 6px -1px rgba(0,0,0,0.02), 0px 2px 4px rgba(0,0,0,0.02);
+  border-radius: 8px;
+  cursor: pointer;
+  color: #ffffff;
+  font-family: 'Saans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 140%;
+  flex-shrink: 0;
+}
+
+#layer-pill-btn:hover {
+  background: #2f2f37;
 }
 
 #layer-img {
   position: absolute;
   inset: 0;
-  background: #ccc;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: #000;
   overflow: hidden;
   cursor: grab;
 }
@@ -149,20 +221,12 @@ body {
   cursor: grabbing;
 }
 
-#layer-img img {
+#layer-placeholder {
   width: 100%;
   height: 100%;
   object-fit: cover;
   pointer-events: none;
   display: block;
-}
-
-.placeholder-text {
-  font-size: 10px;
-  color: rgba(0, 0, 0, 0.25);
-  letter-spacing: 0.1em;
-  font-weight: 500;
-  pointer-events: none;
 }
 
 #bbox-svg {
@@ -186,14 +250,17 @@ body {
   /* background: rgba(255, 0, 0, 0.15); */
 }
 
+/* Edge strips — inset from corners so scale handles take priority at corners */
+#rz-top    { top: calc(-1 * var(--rot-zone-reach));    left: var(--rot-zone-inset);  right: var(--rot-zone-inset); height: var(--rot-zone-depth); }
+#rz-bottom { bottom: calc(-1 * var(--rot-zone-reach)); left: var(--rot-zone-inset);  right: var(--rot-zone-inset); height: var(--rot-zone-depth); }
+#rz-left   { left: calc(-1 * var(--rot-zone-reach));   top: var(--rot-zone-inset);   bottom: var(--rot-zone-inset); width: var(--rot-zone-depth); }
+#rz-right  { right: calc(-1 * var(--rot-zone-reach));  top: var(--rot-zone-inset);   bottom: var(--rot-zone-inset); width: var(--rot-zone-depth); }
+
 /* Corner pads */
 #rz-nw { top: var(--rot-corner-offset);    left: var(--rot-corner-offset);    width: var(--rot-corner-size); height: var(--rot-corner-size); }
 #rz-ne { top: var(--rot-corner-offset);    right: var(--rot-corner-offset);   width: var(--rot-corner-size); height: var(--rot-corner-size); }
 #rz-se { bottom: var(--rot-corner-offset); right: var(--rot-corner-offset);   width: var(--rot-corner-size); height: var(--rot-corner-size); }
 #rz-sw { bottom: var(--rot-corner-offset); left: var(--rot-corner-offset);    width: var(--rot-corner-size); height: var(--rot-corner-size); }
-
-/* Rotation arm tip */
-#rz-top-arm { top: -50px; left: calc(50% - 10px); width: 20px; height: 20px; }
 
 
 /* ─────────────────────────────────────────────

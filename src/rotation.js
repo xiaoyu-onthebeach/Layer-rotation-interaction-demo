@@ -4,7 +4,8 @@ const PILL_OFFSET_X = 16;
 const PILL_OFFSET_Y = -30;
 
 const ZONE_CURSOR_BASE = {
-  nw: 315, ne: 45, se: 135, sw: 225, 'top-arm': 0,
+  nw: 315, ne: 45, se: 135, sw: 225,
+  top: 0, right: 90, bottom: 180, left: 270,
 };
 
 const SNAP_DEGREES = 15;
@@ -18,6 +19,10 @@ const canvasEl    = document.getElementById('canvas-area');
 const wrapper     = document.getElementById('layer-wrapper');
 const bboxSvg     = document.getElementById('bbox-svg');
 const layerImg    = document.getElementById('layer-img');
+const layerPill        = document.getElementById('layer-pill');
+const layerPillBtn     = document.getElementById('layer-pill-btn');
+const groupToggle      = document.getElementById('group-toggle');
+const layerPlaceholder = document.getElementById('layer-placeholder');
 const cursorEl    = document.getElementById('custom-cursor');
 const cursorSvg   = document.getElementById('cursor-svg');
 const pillEl      = document.getElementById('angle-pill');
@@ -46,6 +51,8 @@ let resizeCursor      = 'default';
 let moving        = false;
 let moveStartX    = 0, moveStartY    = 0;
 let moveStartLeft = 0, moveStartTop  = 0;
+
+let isGrouped      = false; // grouped state — toggled by the top-bar button
 
 let hoveredCorner  = null;   // 'nw'|'ne'|'se'|'sw' when over a corner scale zone
 let hoveredScaleEl = null;   // the actual hovered scale zone element
@@ -101,23 +108,86 @@ function handleLocalOffset(dir, w, h) {
 }
 
 
+// ─── Fit layer to image ───────────────────────────────────────────
+
+function fitLayerToImage() {
+  let w = layerPlaceholder.naturalWidth;
+  let h = layerPlaceholder.naturalHeight;
+  if (!w || !h) return;
+
+  // Scale down to fit within 85% of the canvas, preserving aspect ratio
+  const maxW = canvasEl.offsetWidth  * 0.85;
+  const maxH = canvasEl.offsetHeight * 0.85;
+  if (w > maxW || h > maxH) {
+    const scale = Math.min(maxW / w, maxH / h);
+    w = Math.round(w * scale);
+    h = Math.round(h * scale);
+  }
+
+  wrapper.style.width  = w + 'px';
+  wrapper.style.height = h + 'px';
+  updateBbox(w, h);
+  centreLayer();
+  updatePillPosition();
+}
+
+layerPlaceholder.addEventListener('load', fitLayerToImage);
+
+
+// ─── Grouped state ───────────────────────────────────────────────
+
+function setGrouped(val) {
+  isGrouped = val;
+  groupToggle.classList.toggle('active', isGrouped);
+  layerPlaceholder.src = isGrouped ? 'image2.png' : 'blue_3.png';
+  if (isGrouped) {
+    showPill();
+  } else {
+    hidePill();
+  }
+}
+
+groupToggle.addEventListener('click', () => setGrouped(!isGrouped));
+layerPillBtn.addEventListener('click', () => setGrouped(false));
+
+
+// ─── Layer pill positioning ───────────────────────────────────────
+
+function updatePillPosition() {
+  const r  = wrapper.getBoundingClientRect();
+  const pw = layerPill.offsetWidth  || 119;
+  const ph = layerPill.offsetHeight || 48;
+  layerPill.style.left = Math.round(r.left + r.width  / 2 - pw / 2) + 'px';
+  layerPill.style.top  = Math.round(r.top  - 16 - ph) + 'px';
+}
+
+function showPill() {
+  if (!isGrouped) return;
+  layerPill.style.display = 'flex';
+  updatePillPosition();
+}
+
+function hidePill() {
+  layerPill.style.display = 'none';
+}
+
+
 // ─── Bbox update ──────────────────────────────────────────────────
 
 function updateBbox(w, h) {
-  const re = w - 4, be = h - 4, mx = w / 2 - 4, my = h / 2 - 4, cx = w / 2;
+  const re = w - 4, be = h - 4, mx = w / 2 - 4, my = h / 2 - 4;
+  const h8 = 'width="8" height="8" fill="white" stroke="#4570FF" stroke-width="1.2" rx="1"';
   bboxSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
   bboxSvg.innerHTML = `
-    <rect x="0" y="0" width="${w}" height="${h}" fill="none" stroke="#4a90e2" stroke-width="1.2"/>
-    <rect x="-4"    y="-4"    width="8" height="8" fill="#1a1a2e" stroke="#4a90e2" stroke-width="1.2" rx="1"/>
-    <rect x="${re}" y="-4"    width="8" height="8" fill="#1a1a2e" stroke="#4a90e2" stroke-width="1.2" rx="1"/>
-    <rect x="${re}" y="${be}" width="8" height="8" fill="#1a1a2e" stroke="#4a90e2" stroke-width="1.2" rx="1"/>
-    <rect x="-4"    y="${be}" width="8" height="8" fill="#1a1a2e" stroke="#4a90e2" stroke-width="1.2" rx="1"/>
-    <rect x="${mx}" y="-4"    width="8" height="8" fill="#1a1a2e" stroke="#4a90e2" stroke-width="1.2" rx="1"/>
-    <rect x="${mx}" y="${be}" width="8" height="8" fill="#1a1a2e" stroke="#4a90e2" stroke-width="1.2" rx="1"/>
-    <rect x="-4"    y="${my}" width="8" height="8" fill="#1a1a2e" stroke="#4a90e2" stroke-width="1.2" rx="1"/>
-    <rect x="${re}" y="${my}" width="8" height="8" fill="#1a1a2e" stroke="#4a90e2" stroke-width="1.2" rx="1"/>
-    <line x1="${cx}" y1="-4" x2="${cx}" y2="-40" stroke="#4a90e2" stroke-width="1.2"/>
-    <rect x="${cx-4}" y="-44" width="8" height="8" fill="#1a1a2e" stroke="#4a90e2" stroke-width="1.2" rx="1"/>
+    <rect x="0" y="0" width="${w}" height="${h}" fill="none" stroke="#4570FF" stroke-width="1.2"/>
+    <rect x="-4"    y="-4"    ${h8}/>
+    <rect x="${re}" y="-4"    ${h8}/>
+    <rect x="${re}" y="${be}" ${h8}/>
+    <rect x="-4"    y="${be}" ${h8}/>
+    <rect x="${mx}" y="-4"    ${h8}/>
+    <rect x="${mx}" y="${be}" ${h8}/>
+    <rect x="-4"    y="${my}" ${h8}/>
+    <rect x="${re}" y="${my}" ${h8}/>
   `;
 }
 
@@ -133,6 +203,7 @@ function applyRotation(deg) {
   display = Math.round(display);
   pillText.textContent = display + '°';
   if (angleReadout) angleReadout.textContent = display + '°';
+  if (!dragging) updatePillPosition();
 }
 
 
@@ -143,7 +214,7 @@ function orientCursor(zone) {
   cursorSvg.style.transform = `rotate(${base + rotation}deg)`;
 }
 
-const LEFT_ZONES = new Set(['nw', 'sw']);
+const LEFT_ZONES = new Set(['nw', 'sw', 'left']);
 
 function moveCursorEl(mx, my) {
   cursorEl.style.left = mx + 'px';
@@ -159,9 +230,7 @@ function moveCursorEl(mx, my) {
 function showCursor(zone, mx, my) {
   pillOnLeft = LEFT_ZONES.has(zone);
   orientCursor(zone);
-  // Make pill visible before measuring its width for left-side positioning
   cursorEl.style.display = 'block';
-  pillEl.style.display   = 'flex';
   moveCursorEl(mx, my);
   canvasEl.style.cursor  = 'none';
   document.body.style.cursor = 'none';
@@ -225,6 +294,8 @@ document.querySelectorAll('.rot-zone').forEach(zone => {
     startMouseAngle = angleToPoint(e.clientX, e.clientY);
     startLayerAngle = rotation;
     document.body.style.cursor = 'none';
+    pillEl.style.display = 'flex';
+    hidePill();
   });
 });
 
@@ -267,6 +338,8 @@ document.querySelectorAll('.scale-zone').forEach(z => {
       startMouseAngle = angleToPoint(e.clientX, e.clientY);
       startLayerAngle = rotation;
       document.body.style.cursor = 'none';
+      pillEl.style.display = 'flex';
+      hidePill();
       return;
     }
 
@@ -335,6 +408,7 @@ document.addEventListener('mousemove', e => {
     wrapper.style.left = (moveStartLeft + e.clientX - moveStartX) + 'px';
     wrapper.style.top  = (moveStartTop  + e.clientY - moveStartY) + 'px';
     document.body.style.cursor = 'grabbing';
+    updatePillPosition();
     return;
   }
 
@@ -356,6 +430,7 @@ document.addEventListener('mousemove', e => {
       wrapper.style.left   = Math.round(newCx - newW / 2 - cr.left) + 'px';
       wrapper.style.top    = Math.round(newCy - newH / 2 - cr.top)  + 'px';
       updateBbox(newW, newH);
+      updatePillPosition();
     }
     document.body.style.cursor = resizeCursor;
     return;
@@ -403,6 +478,8 @@ document.addEventListener('mouseup', () => {
   if (!dragging) return;
   dragging = false;
   clearSnapFeedback();
+  pillEl.style.display = 'none';
+  showPill();
 
   // If Cmd+corner rotation, restore rotation cursor while still hovering
   if (cmdRotateMode && hoveredCorner && hoveredScaleEl) {
@@ -416,7 +493,7 @@ document.addEventListener('mouseup', () => {
 });
 
 document.addEventListener('mouseleave', () => {
-  if (dragging)  { dragging  = false; hideCursor(); document.body.style.cursor = 'default'; }
+  if (dragging)  { dragging  = false; hideCursor(); document.body.style.cursor = 'default'; showPill(); }
   if (resizing)  { resizing  = false; resizeDir = null; document.body.style.cursor = 'default'; }
   if (moving)    { moving    = false; document.body.style.cursor = 'default'; }
 });
@@ -425,3 +502,5 @@ document.addEventListener('mouseleave', () => {
 // ─── Init ─────────────────────────────────────────────────────────
 
 applyRotation(0);
+setGrouped(false);
+if (layerPlaceholder.complete && layerPlaceholder.naturalWidth) fitLayerToImage(); // start in ungrouped state; toggle button activates grouped mode
